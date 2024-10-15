@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'dart:convert'; // Para convertir el JSON
+import 'package:local_auth/local_auth.dart';
 import 'package:app_auticare/Authtentication/signup.dart';
 import 'package:app_auticare/Views/home.dart';
 
@@ -12,15 +13,16 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-
+  
+  final LocalAuthentication auth = LocalAuthentication();
   final correo = TextEditingController();
   final contrasena = TextEditingController();
+
 
   bool isVisible = false;
 
   bool isLoginTrue = false;
 
-  //Función de login que consume la API
   //Función de login que consume la API
   Future<void> login() async {
     final url = Uri.parse('http://10.0.2.2:3000/api/v1/auth/login'); // URL de tu API
@@ -72,6 +74,83 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         isLoginTrue = true;
       });
+    }
+  }
+
+// Autenticación biométrica
+  String _authorized = 'No autorizado';
+  bool _isAuthenticating = false;
+  _SupportedState _supportedState = _SupportedState.unknown;
+  bool? _canCheckBiometrics;
+  List<BiometricType>? _availableBiometricTypes;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometricSupport();
+  }
+
+  Future<void> _checkBiometricSupport() async {
+    final isSupported = await auth.isDeviceSupported();
+    final canCheckBiometrics = await auth.canCheckBiometrics;
+    
+    setState(() {
+      _supportedState = isSupported ? _SupportedState.supported : _SupportedState.unsupported;
+      _canCheckBiometrics = canCheckBiometrics;
+    });
+
+    if (canCheckBiometrics) {
+      _getAvailableBiometrics();
+    }
+  }
+
+  Future<void> _getAvailableBiometrics() async {
+    try {
+      final availableBiometrics = await auth.getAvailableBiometrics();
+      setState(() {
+        _availableBiometricTypes = availableBiometrics;
+      });
+    } catch (e) {
+      print('Error al obtener biométricos disponibles: $e');
+    }
+  }
+
+  Future<void> _authenticate() async {
+    if (!_canCheckBiometrics!) {
+      setState(() {
+        _authorized = 'La autenticación biométrica no está disponible en este dispositivo';
+      });
+      return;
+    }
+
+    try {
+      setState(() {
+        _isAuthenticating = true;
+        _authorized = 'Autenticando...';
+      });
+
+      final authenticated = await auth.authenticate(
+        localizedReason: 'Autentícate para iniciar sesión',
+        options: const AuthenticationOptions(
+          useErrorDialogs: true,
+          stickyAuth: true,
+        ),
+      );
+
+      setState(() {
+        _isAuthenticating = false;
+        _authorized = authenticated ? 'Autorizado' : 'No autorizado';
+      });
+
+      if (authenticated) {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const Home()));
+      }
+    } catch (e) {
+      setState(() {
+        _isAuthenticating = false;
+        _authorized = 'Error: $e';
+      });
+      print('Error de autenticación: $e');
     }
   }
 
@@ -165,9 +244,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (formKey.currentState!.validate()) {
                             //Login method will be here
                             login();
-
-                            //Now we have a response from our sqlite method
-                            //We are going to create a user
                           }
                         },
                         child: const Text(
@@ -175,6 +251,32 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: TextStyle(color: Colors.white),
                         )),
                   ),
+
+                //biometricos
+                if (_supportedState == _SupportedState.supported && _canCheckBiometrics == true) 
+                  const Divider(),
+                  ElevatedButton(
+                    onPressed: _authenticate,
+                    child: const Text('Autenticación biométrica'),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(_authorized),
+                
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.center,
+              //   children: [
+              //     const Divider(),
+
+                  
+              //         TextButton(
+              //             onPressed: () {
+              //               //Navigate to sign up
+              //               _authenticate;
+              //             },
+              //             child: const Text("Autenticar")
+              //             )
+              //       ],
+              //     ),
 
                   //Sign up button
                   Row(
@@ -209,3 +311,5 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
+enum _SupportedState { unknown, supported, unsupported }
