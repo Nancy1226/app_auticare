@@ -109,7 +109,7 @@ class _HomeScreenState extends State<Home> {
               Navigator.pushNamed(context, AppRoutes.chat);
               break;
             case 3:
-              Navigator.pushNamed(context, AppRoutes.profile);
+              Navigator.pushNamed(context, AppRoutes.donation);
               break;
           }
         },
