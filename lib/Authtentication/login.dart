@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:local_auth/local_auth.dart';
-import 'package:app_auticare/Authtentication/signup.dart';
+import 'package:app_auticare/Authtentication/user/selectuser.dart';
 import 'package:app_auticare/Views/home.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,7 +15,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  
+  final storage = FlutterSecureStorage(); //para guardar el token
+
   final LocalAuthentication auth = LocalAuthentication();
   final correo = TextEditingController();
   final contrasena = TextEditingController();
@@ -50,23 +53,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
+        final token = responseData['token'];
 
-        // Imprimir la respuesta de la API
-        print('Respuesta de la API: $responseData');
-
-        // Verificar si el login fue exitoso basado en la respuesta de la API
-       
-          // Navegar a la pantalla de notas
-          if (!mounted) return;
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const Home()),
-          );
+        // Verifica que el token no sea nulo o vacío
+        if (token != null && token.isNotEmpty) {
+          await storage.write(key: 'authToken', value: token);
+          print('Token guardado: $token');
+           Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const Home()),
+        );
         } else {
-        // Manejar errores de servidor
-        setState(() {
-          isLoginTrue = true;
-        });
+          print('Error: El token recibido es nulo o vacío');
+        }
       }
     } catch (e) {
       // Manejar errores de conexión
@@ -188,8 +187,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         }
                         return null;
                       },
+                      keyboardType: TextInputType.emailAddress,
                       decoration: const InputDecoration(
-                        icon: Icon(Icons.person),
+                        icon: Icon(Icons.email),
                         border: InputBorder.none,
                         hintText: "Correo",
                       ),
@@ -261,23 +261,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 10),
                   Text(_authorized),
-                
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.center,
-              //   children: [
-              //     const Divider(),
-
-                  
-              //         TextButton(
-              //             onPressed: () {
-              //               //Navigate to sign up
-              //               _authenticate;
-              //             },
-              //             child: const Text("Autenticar")
-              //             )
-              //       ],
-              //     ),
-
                   //Sign up button
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -289,7 +272,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => const SignUp()));
+                                    builder: (context) => const SelectUser()));
                           },
                           child: const Text("Regístrate"))
                     ],
