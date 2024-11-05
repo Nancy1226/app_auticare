@@ -18,7 +18,7 @@ class _ChatbotState extends State<Chatbot> {
   bool _isLoading = false;
   bool _isConnected = true;
 
-  final String _apiKey = 'AIzaSyA9ejnBH-ZMI0zQFDHk9GTQ3cH5aPHGi0U';
+
 
   // Define los colores pastel
   final Color _lightPurple = Color(0xFFDBE1E9); //abajo
