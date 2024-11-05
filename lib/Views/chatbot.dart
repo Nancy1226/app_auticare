@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:app_auticare/Widgets/custom_appbar.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class Chatbot extends StatefulWidget {
   const Chatbot({super.key});
@@ -17,6 +18,8 @@ class _ChatbotState extends State<Chatbot> {
   List<Map<String, String>> _messages = [];
   bool _isLoading = false;
   bool _isConnected = true;
+  bool _isListening = false;
+  late stt.SpeechToText _speech;
 
   final String _apiKey = 'AIzaSyA9ejnBH-ZMI0zQFDHk9GTQ3cH5aPHGi0U';
 
@@ -29,6 +32,7 @@ class _ChatbotState extends State<Chatbot> {
   @override
   void initState() {
     super.initState();
+    _speech = stt.SpeechToText();
     _checkInternetConnection();
     _loadMessages();
   }
@@ -38,26 +42,6 @@ class _ChatbotState extends State<Chatbot> {
     setState(() {
       _isConnected = connectivityResult != ConnectivityResult.none;
     });
-  }
-
-  void _showNoConnectionAlert() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Sin Conexión a Internet"),
-          content: Text("Por favor, verifica tu conexión a Internet."),
-          actions: <Widget>[
-            TextButton(
-              child: Text("Cerrar"),
-              onPressed: () {
-                Navigator.of(context).pop(); // Cierra el diálogo
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   Future<void> _loadMessages() async {
@@ -102,7 +86,7 @@ class _ChatbotState extends State<Chatbot> {
     final url = Uri.parse(
         'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=$_apiKey');
 
-    // Preparar el historial de mensajes en el formato correcto
+    // Añadir el contexto específico de autismo infantil en la solicitud.
     List<Map<String, dynamic>> formattedMessages = _messages.map((message) {
       return {
         "role": message["role"],
@@ -112,11 +96,15 @@ class _ChatbotState extends State<Chatbot> {
       };
     }).toList();
 
-    // Añadir el mensaje actual del usuario
+    // Añadir el mensaje actual del usuario, con contexto específico.
     formattedMessages.add({
       "role": "user",
       "parts": [
-        {"text": userMessage}
+        {
+          "text":
+              "Actúa como un especialista en autismo infantil. Solo responde sobre temas relacionados al autismo en niños. " +
+                  userMessage
+        }
       ]
     });
 
@@ -143,7 +131,13 @@ class _ChatbotState extends State<Chatbot> {
           String botMessage =
               data['candidates'][0]['content']['parts'][0]['text']?.trim() ??
                   'No response from bot';
-          return botMessage;
+
+          // Verificar si la respuesta está en el contexto deseado
+          if (_isRelevantResponse(botMessage)) {
+            return botMessage;
+          } else {
+            return 'Lo siento, solo puedo responder preguntas relacionadas con el autismo infantil.';
+          }
         } else {
           return 'No candidates available in response';
         }
@@ -152,6 +146,51 @@ class _ChatbotState extends State<Chatbot> {
       }
     } else {
       return "Error: ${response.statusCode} ${response.body}";
+    }
+  }
+
+  // Método para verificar si la respuesta es relevante al contexto de autismo
+  bool _isRelevantResponse(String response) {
+    // Palabras clave para verificar relevancia al tema de autismo infantil
+    List<String> keywords = [
+      "autismo",
+      "niños",
+      "trastorno",
+      "comportamiento",
+      "terapia",
+      "comunicación",
+      "habilidades sociales",
+      "diagnóstico",
+      "síntomas"
+    ];
+
+    // Verifica si al menos una palabra clave está en la respuesta
+    return keywords.any(
+        (keyword) => response.toLowerCase().contains(keyword.toLowerCase()));
+  }
+
+  void _listen() async {
+    if (!_isListening) {
+      bool available = await _speech.initialize(
+        onStatus: (status) => print('Status: $status'),
+        onError: (errorNotification) =>
+            print('Error: $errorNotification.errorMsg'),
+      );
+      if (available) {
+        setState(() => _isListening = true);
+        _speech.listen(
+          onResult: (val) => setState(() {
+            _controller.text = val.recognizedWords;
+          }),
+        );
+      } else {
+        setState(() {
+          _controller.text = 'No se pudo iniciar el reconocimiento de voz';
+        });
+      }
+    } else {
+      setState(() => _isListening = false);
+      _speech.stop();
     }
   }
 
@@ -247,7 +286,15 @@ class _ChatbotState extends State<Chatbot> {
                     ),
                   ),
                 ),
-                SizedBox(width: 12.0),
+                SizedBox(width: 8.0),
+                IconButton(
+                  icon: Icon(
+                    _isListening ? Icons.mic : Icons.mic_none,
+                    color: Colors.blue,
+                  ),
+                  onPressed: _listen,
+                ),
+                SizedBox(width: 8.0),
                 Container(
                   width: 40,
                   height: 40,
