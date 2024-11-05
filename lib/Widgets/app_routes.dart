@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:app_auticare/Views/home.dart'; // Asegúrate de importar tus vistas
 import 'package:app_auticare/Views/chatbot.dart';
 import 'package:app_auticare/Authtentication/login.dart';
-import 'package:app_auticare/Views/donation.dart';
 
 class AppRoutes {
   static const String login = '/login';
@@ -21,8 +20,6 @@ class AppRoutes {
     //   return MaterialPageRoute(builder: (_) => GridViewScreen());
     case chat:
       return MaterialPageRoute(builder: (_) => Chatbot());
-    case donation:
-      return MaterialPageRoute(builder: (_) => Donation());
     default:
       throw Exception('Ruta no definida: ${settings.name}'); // Lanzar una excepción para rutas no definidas
     }
