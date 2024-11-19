@@ -43,7 +43,10 @@ class _HomeScreenState extends State<Home> {
               children: const [
                 Text(
                   "¡Hola Nancy!",
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+                  style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
                 ),
                 Text(
                   "Empezamos?",
@@ -103,7 +106,7 @@ class _HomeScreenState extends State<Home> {
               Navigator.pushNamed(context, AppRoutes.home);
               break;
             case 1:
-              Navigator.pushNamed(context, AppRoutes.gridView);
+              Navigator.pushNamed(context, AppRoutes.donation);
               break;
             case 2:
               Navigator.pushNamed(context, AppRoutes.chat);
@@ -143,10 +146,9 @@ class _HomeScreenState extends State<Home> {
                 children: [
                   Icon(icon, color: Colors.white),
                   const SizedBox(width: 8),
-                  Text(
-                    title, 
-                    style: const TextStyle(fontSize: 18, color: Colors.white)
-                  ),
+                  Text(title,
+                      style:
+                          const TextStyle(fontSize: 18, color: Colors.white)),
                 ],
               ),
               if (validated)
@@ -187,7 +189,7 @@ class _HomeScreenState extends State<Home> {
                 ],
               ),
               Image.asset(
-                image, 
+                image,
                 height: 100,
                 fit: BoxFit.contain,
               ),

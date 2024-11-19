@@ -86,7 +86,7 @@ class _ChatbotState extends State<Chatbot> {
     final url = Uri.parse(
         'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=$_apiKey');
 
-    // Preparar el historial de mensajes en el formato correcto
+    // Añadir el contexto específico de autismo infantil en la solicitud.
     List<Map<String, dynamic>> formattedMessages = _messages.map((message) {
       return {
         "role": message["role"],
@@ -96,11 +96,15 @@ class _ChatbotState extends State<Chatbot> {
       };
     }).toList();
 
-    // Añadir el mensaje actual del usuario
+    // Añadir el mensaje actual del usuario, con contexto específico.
     formattedMessages.add({
       "role": "user",
       "parts": [
-        {"text": userMessage}
+        {
+          "text":
+              "Actúa como un especialista en autismo infantil. Solo responde sobre temas relacionados al autismo en niños. " +
+                  userMessage
+        }
       ]
     });
 
@@ -127,7 +131,13 @@ class _ChatbotState extends State<Chatbot> {
           String botMessage =
               data['candidates'][0]['content']['parts'][0]['text']?.trim() ??
                   'No response from bot';
-          return botMessage;
+
+          // Verificar si la respuesta está en el contexto deseado
+          if (_isRelevantResponse(botMessage)) {
+            return botMessage;
+          } else {
+            return 'Lo siento, solo puedo responder preguntas relacionadas con el autismo infantil.';
+          }
         } else {
           return 'No candidates available in response';
         }
@@ -137,6 +147,26 @@ class _ChatbotState extends State<Chatbot> {
     } else {
       return "Error: ${response.statusCode} ${response.body}";
     }
+  }
+
+  // Método para verificar si la respuesta es relevante al contexto de autismo
+  bool _isRelevantResponse(String response) {
+    // Palabras clave para verificar relevancia al tema de autismo infantil
+    List<String> keywords = [
+      "autismo",
+      "niños",
+      "trastorno",
+      "comportamiento",
+      "terapia",
+      "comunicación",
+      "habilidades sociales",
+      "diagnóstico",
+      "síntomas"
+    ];
+
+    // Verifica si al menos una palabra clave está en la respuesta
+    return keywords.any(
+        (keyword) => response.toLowerCase().contains(keyword.toLowerCase()));
   }
 
   void _listen() async {
@@ -213,7 +243,8 @@ class _ChatbotState extends State<Chatbot> {
               ),
             ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [
