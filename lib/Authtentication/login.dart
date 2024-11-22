@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:local_auth/local_auth.dart';
-import 'package:app_auticare/Authtentication/user/selectuser.dart';
-import 'package:app_auticare/Views/home.dart';
+import 'package:app_auticare/Authtentication/selectuser.dart';
+import 'package:app_auticare/Views/user_tutor/home.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 

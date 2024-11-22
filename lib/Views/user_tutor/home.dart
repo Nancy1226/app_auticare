@@ -3,7 +3,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:app_auticare/widgets/custom_navigation_bar.dart';
-import 'package:app_auticare/Widgets/app_routes.dart'; // Asegúrate de importar tu archivo de rutas
+import 'package:app_auticare/Widgets/custom_modal.dart';
+import 'package:app_auticare/Widgets/app_routes.dart'; 
+
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -106,13 +108,13 @@ class _HomeScreenState extends State<Home> {
               Navigator.pushNamed(context, AppRoutes.home);
               break;
             case 1:
-              Navigator.pushNamed(context, AppRoutes.donation);
+              Navigator.pushNamed(context, AppRoutes.board);
               break;
             case 2:
               Navigator.pushNamed(context, AppRoutes.chat);
               break;
             case 3:
-              Navigator.pushNamed(context, AppRoutes.donation);
+              Navigator.pushNamed(context, AppRoutes.profile);
               break;
           }
         },
@@ -160,7 +162,21 @@ class _HomeScreenState extends State<Home> {
           ),
           const SizedBox(height: 8),
           ElevatedButton(
-            onPressed: () {},
+              onPressed: () {
+              // Mostrar el modal al presionar el botón
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true, // Permite que el modal se ajuste a su contenido
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(16),
+                  ),
+                ),
+                builder: (BuildContext context) {
+                  return CustomModal(); // Llama al componente del modal
+                },
+              );
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: color,
