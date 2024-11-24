@@ -7,14 +7,14 @@ import 'package:app_auticare/Widgets/custom_modal.dart';
 import 'package:app_auticare/Widgets/app_routes.dart'; 
 
 
-class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
+class HomeSpecialist extends StatefulWidget {
+  const HomeSpecialist({Key? key}) : super(key: key);
 
   @override
-  State<Home> createState() => _HomeScreenState();
+  State<HomeSpecialist> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<Home> {
+class _HomeScreenState extends State<HomeSpecialist> {
   int _selectedIndex = 0;
   final FlutterSecureStorage storage = FlutterSecureStorage();
   String? token;
@@ -105,16 +105,10 @@ class _HomeScreenState extends State<Home> {
           // Navega a la ruta correspondiente
           switch (index) {
             case 0:
-              Navigator.pushNamed(context, AppRoutes.home);
+              Navigator.pushNamed(context, AppRoutes.home_specialist);
               break;
             case 1:
-              Navigator.pushNamed(context, AppRoutes.board);
-              break;
-            case 2:
-              Navigator.pushNamed(context, AppRoutes.chat);
-              break;
-            case 3:
-              Navigator.pushNamed(context, AppRoutes.profile);
+              Navigator.pushNamed(context, AppRoutes.profile_specialist);
               break;
           }
         },

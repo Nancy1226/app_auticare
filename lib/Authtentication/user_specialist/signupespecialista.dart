@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert'; // Para convertir el JSON
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:app_auticare/Authtentication/login.dart';
+import 'package:app_auticare/Authtentication/verification.dart';
 
-class SignUpTutor extends StatefulWidget {
-  const SignUpTutor({super.key});
+class SignUpEspecialista extends StatefulWidget {
+  const SignUpEspecialista({super.key});
 
   @override
-  State<SignUpTutor> createState() => _SignUpTutorState();
+  State<SignUpEspecialista> createState() => _SignUpEspecialistaState();
 }
 
-class _SignUpTutorState extends State<SignUpTutor> {
+class _SignUpEspecialistaState extends State<SignUpEspecialista> {
   final nombre = TextEditingController();
   final apellido_paterno = TextEditingController();
   final apellido_materno = TextEditingController();
@@ -21,7 +21,8 @@ class _SignUpTutorState extends State<SignUpTutor> {
   final confirmPassword = TextEditingController();
   final telefono = TextEditingController();
   final fecha_nacimiento = TextEditingController();
-  final cargo = TextEditingController();
+  final titulo_especialidad = TextEditingController();
+  final cedula_profesional = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
   bool isVisible = false;
@@ -42,10 +43,8 @@ class _SignUpTutorState extends State<SignUpTutor> {
     }
   }
 
-
-  // Función para registrar un nuevo usuario consumiendo la API
   Future<void> signup() async {
-    final url = Uri.parse('http://10.0.2.2:3000/api/v1/tutores/'); // URL de tu API
+    final url = Uri.parse('http://10.0.2.2:3000/api/v1/users/specialists'); // URL de tu API
     
     try {
       print('Enviando los siguientes datos:');
@@ -58,7 +57,8 @@ class _SignUpTutorState extends State<SignUpTutor> {
           'contrasena': contrasena.text,
           'telefono': telefono.text,
           'fecha_nacimiento': fecha_nacimiento.text,
-          'cargo': cargo.text,
+          'titulo_especialidad': titulo_especialidad.text,
+          'cedula_profesional': cedula_profesional.text,
       });
 
       // Realiza el POST a la API
@@ -74,16 +74,19 @@ class _SignUpTutorState extends State<SignUpTutor> {
           'contrasena': contrasena.text,
           'telefono': telefono.text,
           'fecha_nacimiento': fecha_nacimiento.text,
-          'cargo': cargo.text,
+          'titulo_especialidad': titulo_especialidad.text,
+          'cedula_profesional': cedula_profesional.text,
         }),
       );
 
+      print('Mostrando el status:');
+      print(response.statusCode);
       if (response.statusCode == 201) {
-        // Registro exitoso, redirigir al login
+       //Registro exitoso, redirigir al login
         if (!mounted) return;
-        Navigator.pushReplacement(
+       Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          MaterialPageRoute(builder: (context) => const VerificationScreen()),
         );
       } else {
         // Manejar error de registro
@@ -113,9 +116,10 @@ class _SignUpTutorState extends State<SignUpTutor> {
                 children: [
                   const ListTile(
                     title: Text(
-                      "Registro tutor",
+                      "Registro Especialista",
                       style: TextStyle(
-                          fontSize: 50, fontWeight: FontWeight.bold),
+                          fontSize: 36, fontWeight: FontWeight.bold
+                          ),
                     ),
                   ),
                   // Campo de texto para el nombre de usuario
@@ -362,7 +366,7 @@ class _SignUpTutorState extends State<SignUpTutor> {
                         borderRadius: BorderRadius.circular(8),
                         color: Colors.deepPurple.withOpacity(.2)),
                     child: TextFormField(
-                      controller: cargo,
+                      controller: titulo_especialidad,
                       validator: (value) {
                         if (value!.isEmpty) {
                           return "campo obligatorio";
@@ -372,7 +376,30 @@ class _SignUpTutorState extends State<SignUpTutor> {
                       decoration: const InputDecoration(
                         icon: Icon(Icons.person_outlined),
                         border: InputBorder.none,
-                        hintText: "Cargo",
+                        hintText: "Especialidad",
+                      ),
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.all(8),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.deepPurple.withOpacity(.2)),
+                    child: TextFormField(
+                      controller: cedula_profesional,
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return "campo obligatorio";
+                        }
+                        return null;
+                      },
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(
+                        icon: Icon(Icons.person_outlined),
+                        border: InputBorder.none,
+                        hintText: "Cédula profesional",
                       ),
                     ),
                   ),

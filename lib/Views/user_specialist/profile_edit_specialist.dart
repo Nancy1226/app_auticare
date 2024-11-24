@@ -1,16 +1,17 @@
-import 'package:app_auticare/Views/user_tutor/donation.dart';
-import 'package:app_auticare/Views/user_tutor/profile.dart';
+import 'package:app_auticare/Views/user_specialist/profile_specialist.dart';
+import 'package:app_auticare/Views/user_tutor/donation_tutor.dart';
+import 'package:app_auticare/Views/user_tutor/profile_tutor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class Profile_Edit extends StatefulWidget {
-  const Profile_Edit({Key? key}) : super(key: key);
+class Profile_Edit_Specialist extends StatefulWidget {
+  const Profile_Edit_Specialist({Key? key}) : super(key: key);
 
   @override
   _Profile_Edit_State createState() => _Profile_Edit_State();
 }
 
-class _Profile_Edit_State extends State<Profile_Edit> {
+class _Profile_Edit_State extends State<Profile_Edit_Specialist> {
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _nameController = TextEditingController(text: "Nancy Jimenez Escobar");
@@ -241,7 +242,7 @@ class _Profile_Edit_State extends State<Profile_Edit> {
                   onPressed: () {
                     Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => const Profile()),
+                    MaterialPageRoute(builder: (context) => const ProfileSpecialist()),
                     );
                   },
                   style: ElevatedButton.styleFrom(

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert'; // Para convertir el JSON
-import 'package:app_auticare/Authtentication/user_tutor/signupespecialista.dart';
-import 'package:app_auticare/Authtentication/user_specialist/signuptutor.dart';
+import 'package:app_auticare/Authtentication/user_tutor/signuptutor.dart';
+import 'package:app_auticare/Authtentication/user_specialist/signupespecialista.dart';
 
 class SelectUser extends StatefulWidget {
   const SelectUser({super.key});

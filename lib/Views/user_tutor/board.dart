@@ -1,6 +1,7 @@
-import 'package:app_auticare/widgets/custom_navigation_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:app_auticare/widgets/custom_navigation_bar.dart';
 import 'package:app_auticare/Widgets/app_routes.dart';
+import 'package:app_auticare/Views/user_tutor/profile_tutor.dart';
 
 class Board extends StatefulWidget {
   const Board({Key? key}) : super(key: key);
@@ -10,160 +11,312 @@ class Board extends StatefulWidget {
 }
 
 class _BoardState extends State<Board> {
-  int _selectedIndex = 0;
+  // Inicializamos _selectedIndex con un valor por defecto
+  int _selectedIndex = 1;
+  String _selectedFilter = 'Todos'; // Cambiamos el valor inicial a 'Todos'
+  
+  List<EmotionData> allEmotions = [
+    EmotionData(
+      imagePath: 'lib/assets/emotions/feliz.png',
+      label: 'Feliz',
+      type: 'Feliz'
+    ),
+    EmotionData(
+      imagePath: 'lib/assets/emotions/enojado.png',
+      label: 'Enojado',
+      type: 'Triste'
+    ),
+    EmotionData(
+      imagePath: 'lib/assets/emotions/triste.png',
+      label: 'Triste',
+      type: 'Triste'
+    ),
+    EmotionData(
+      imagePath: 'lib/assets/emotions/emocionado.png',
+      label: 'Emocionado',
+      type: 'Feliz'
+    ),
+  ];
+
+  void _handleNavigationTap(int index) {
+    if (mounted) {
+      setState(() {
+       _selectedIndex = index;
+      });
+
+      switch (index) {
+        case 0:
+          Navigator.of(context).pushReplacementNamed(AppRoutes.home_tutor);
+          break;
+        case 1:
+          // No necesitamos navegar si ya estamos en el tablero
+          break;
+        case 2:
+          Navigator.of(context).pushReplacementNamed(AppRoutes.chat);
+          break;
+        case 3:
+          Navigator.of(context).pushReplacementNamed(AppRoutes.profile_childs);
+          break;
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Barra superior con botón de retroceso y avatar
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.black),
-                    onPressed: () {
-                      // Acción del botón de retroceso
-                    },
-                  ),
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundImage: AssetImage('lib/assets/profile.png'), // Cambia esto a tu recurso
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              // Título
-              Text(
-                'Tablero de comunicación',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 8),
-              // Subtítulo
-              Text(
-                '¿Cómo te sientes hoy?',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black54,
-                ),
-              ),
-              const SizedBox(height: 16),
-              // Filtros
-              Row(
-                children: [
-                  FilterChip(
-                    label: Text('Feliz'),
-                    onSelected: (bool value) {},
-                    selected: true,
-                    selectedColor: Colors.purple.shade100,
-                    labelStyle: TextStyle(color: Colors.black),
-                  ),
-                  const SizedBox(width: 8),
-                  FilterChip(
-                    label: Text('Triste'),
-                    onSelected: (bool value) {},
-                    selected: false,
-                    labelStyle: TextStyle(color: Colors.black),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              // Grid de emociones
-              Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
+    List<EmotionData> filteredEmotions = _selectedFilter == 'Todos' 
+        ? allEmotions 
+        : allEmotions.where((emotion) => emotion.type == _selectedFilter).toList();
+
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.home_tutor);
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    EmotionCard(
-                      emoji: '😊',
-                      label: 'Feliz',
+                    const Text(
+                      'Tablero de comunicación',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
                     ),
-                    EmotionCard(
-                      emoji: '😡',
-                      label: 'Enojado',
-                    ),
-                    EmotionCard(
-                      emoji: '😢',
-                      label: 'Triste',
-                    ),
-                    EmotionCard(
-                      emoji: '🤩',
-                      label: 'Emocionado',
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(builder: (context) => const ProfileTutor()),
+                        );
+                      },
+                      child: CircleAvatar(
+                        radius: 20,
+                        backgroundColor: Colors.transparent,
+                        child: Image.asset("lib/assets/profile.png"),
+                      ),
                     ),
                   ],
                 ),
+                const SizedBox(height: 8),
+                const Text(
+                  '¿Cómo te sientes hoy?',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      FilterChip(
+                        label: const Text(
+                          'Feliz',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        selected: _selectedFilter == 'Feliz',
+                        onSelected: (bool value) {
+                          setState(() {
+                            _selectedFilter = value ? 'Feliz' : 'Todos';
+                          });
+                        },
+                        backgroundColor: const Color(0xFF6A62B7),
+                        selectedColor: const Color(0xFF6A62B7),
+                        showCheckmark: false,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      ),
+                      const SizedBox(width: 8),
+                      FilterChip(
+                        label: const Text(
+                          'Triste',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        selected: _selectedFilter == 'Triste',
+                        onSelected: (bool value) {
+                          setState(() {
+                            _selectedFilter = value ? 'Triste' : 'Todos';
+                          });
+                        },
+                        backgroundColor: const Color(0xFF6A62B7),
+                        selectedColor: const Color(0xFF6A62B7),
+                        showCheckmark: false,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Expanded(
+                  child: GridView.count(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    children: filteredEmotions.map((emotion) {
+                      return EmotionCard(
+                        imagePath: emotion.imagePath,
+                        label: emotion.label,
+                        onTap: () => _showEmotionDialog(context, emotion),
+                        isSelected: emotion.type == _selectedFilter,
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        bottomNavigationBar: CustomNavigationBar(
+          selectedIndex: _selectedIndex,
+          onItemSelected: _handleNavigationTap,
+        ),
+      ),
+    );
+  }
+
+  void _showEmotionDialog(BuildContext context, EmotionData emotion) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          title: Text('Me siento ${emotion.label}',
+              textAlign: TextAlign.center),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                emotion.imagePath,
+                height: 100,
+                width: 100,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                '¿Quieres contarme más sobre cómo te sientes?',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey[600]),
               ),
             ],
           ),
-        ),
-      ),
-      bottomNavigationBar: CustomNavigationBar(
-        selectedIndex: _selectedIndex,
-        onItemSelected: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
+          actions: [
+            TextButton(
+              child: const Text(
+                'Cerrar',
+                style: TextStyle(color: Color(0xFF6A62B7)),
+              ),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: const Text(
+                'Registrar emoción',
+                style: TextStyle(color: Color(0xFF6A62B7)),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _showConfirmationSnackbar(context, emotion);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
-          // Navega a la ruta correspondiente
-          switch (index) {
-            case 0:
-              Navigator.pushNamed(context, AppRoutes.home);
-              break;
-            case 1:
-              Navigator.pushNamed(context, AppRoutes.board);
-              break;
-            case 2:
-              Navigator.pushNamed(context, AppRoutes.chat);
-              break;
-            case 3:
-              Navigator.pushNamed(context, AppRoutes.donation);
-              break;
-          }
-        },
+  void _showConfirmationSnackbar(BuildContext context, EmotionData emotion) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Has registrado que te sientes ${emotion.label}'),
+        backgroundColor: const Color(0xFF6A62B7),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
       ),
     );
   }
 }
 
-class EmotionCard extends StatelessWidget {
-  final String emoji;
+class EmotionData {
+  final String imagePath;
   final String label;
+  final String type;
+
+  EmotionData({
+    required this.imagePath,
+    required this.label,
+    required this.type,
+  });
+}
+
+class EmotionCard extends StatelessWidget {
+  final String imagePath;
+  final String label;
+  final VoidCallback onTap;
+  final bool isSelected;
 
   const EmotionCard({
     Key? key,
-    required this.emoji,
+    required this.imagePath,
     required this.label,
+    required this.onTap,
+    this.isSelected = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Center(
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF6A62B7) : Colors.grey.shade200,
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 0,
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              emoji,
-              style: TextStyle(fontSize: 40),
+            Image.asset(
+              imagePath,
+              height: 80,
+              width: 80,
+              fit: BoxFit.contain,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Text(
               label,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
             ),
           ],
         ),

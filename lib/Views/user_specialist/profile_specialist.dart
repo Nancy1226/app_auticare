@@ -1,17 +1,19 @@
+import 'package:app_auticare/Views/user_specialist/donation_specialist.dart';
+import 'package:app_auticare/Views/user_specialist/profile_edit_specialist.dart';
 import 'package:app_auticare/Widgets/app_routes.dart';
 import 'package:flutter/material.dart';
-import 'package:app_auticare/Views/user_tutor/donation.dart';
-import 'package:app_auticare/Views/user_tutor/profile_edit.dart';
+import 'package:app_auticare/Views/user_tutor/donation_tutor.dart';
+import 'package:app_auticare/Views/user_tutor/profile_edit_tutor.dart';
 import 'package:app_auticare/widgets/custom_navigation_bar.dart';
 
-class Profile extends StatefulWidget {
-  const Profile({Key? key}) : super(key: key);
+class ProfileSpecialist extends StatefulWidget {
+  const ProfileSpecialist({Key? key}) : super(key: key);
 
   @override
-  _ProfileState createState() => _ProfileState();
+  _ProfileSpecialistState createState() => _ProfileSpecialistState();
 }
 
-class _ProfileState extends State<Profile> {
+class _ProfileSpecialistState extends State<ProfileSpecialist> {
   int _selectedIndex = 3;
   @override
   Widget build(BuildContext context) {
@@ -90,7 +92,7 @@ class _ProfileState extends State<Profile> {
                   onPressed: () {
                     Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => const Donation()),
+                    MaterialPageRoute(builder: (context) => const DonationSpecialist()),
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -127,7 +129,7 @@ class _ProfileState extends State<Profile> {
                   onPressed: () {
                     Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => const Profile_Edit()),
+                    MaterialPageRoute(builder: (context) => const Profile_Edit_Specialist()),
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -161,16 +163,10 @@ class _ProfileState extends State<Profile> {
           // Navega a la ruta correspondiente
           switch (index) {
             case 0:
-              Navigator.pushNamed(context, AppRoutes.home);
+              Navigator.pushNamed(context, AppRoutes.home_specialist);
               break;
             case 1:
-              Navigator.pushNamed(context, AppRoutes.board);
-              break;
-            case 2:
-              Navigator.pushNamed(context, AppRoutes.chat);
-              break;
-            case 3:
-              Navigator.pushNamed(context, AppRoutes.donation);
+              Navigator.pushNamed(context, AppRoutes.donation_specialist);
               break;
           }
         },

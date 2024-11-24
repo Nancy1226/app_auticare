@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert'; // Para convertir el JSON
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:app_auticare/Authtentication/login.dart';
+import 'package:app_auticare/Authtentication/verification.dart';
 
-class SignUpEspecialista extends StatefulWidget {
-  const SignUpEspecialista({super.key});
+class SignUpTutor extends StatefulWidget {
+  const SignUpTutor({super.key});
 
   @override
-  State<SignUpEspecialista> createState() => _SignUpEspecialistaState();
+  State<SignUpTutor> createState() => _SignUpTutorState();
 }
 
-class _SignUpEspecialistaState extends State<SignUpEspecialista> {
+class _SignUpTutorState extends State<SignUpTutor> {
   final nombre = TextEditingController();
   final apellido_paterno = TextEditingController();
   final apellido_materno = TextEditingController();
@@ -20,8 +22,7 @@ class _SignUpEspecialistaState extends State<SignUpEspecialista> {
   final confirmPassword = TextEditingController();
   final telefono = TextEditingController();
   final fecha_nacimiento = TextEditingController();
-  final titulo_especialidad = TextEditingController();
-  final cedula_profesional = TextEditingController();
+  final cargo = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
   bool isVisible = false;
@@ -45,7 +46,7 @@ class _SignUpEspecialistaState extends State<SignUpEspecialista> {
 
   // Función para registrar un nuevo usuario consumiendo la API
   Future<void> signup() async {
-    final url = Uri.parse('http://10.0.2.2:3000/api/v1/especialistas/'); // URL de tu API
+    final url = Uri.parse('http://10.0.2.2:3000/api/v1/users/tutors/'); // URL de tu API
     
     try {
       print('Enviando los siguientes datos:');
@@ -58,8 +59,7 @@ class _SignUpEspecialistaState extends State<SignUpEspecialista> {
           'contrasena': contrasena.text,
           'telefono': telefono.text,
           'fecha_nacimiento': fecha_nacimiento.text,
-          'titulo_especialidad': titulo_especialidad.text,
-          'cedula_profesional': cedula_profesional.text,
+          'cargo': cargo.text,
       });
 
       // Realiza el POST a la API
@@ -75,26 +75,22 @@ class _SignUpEspecialistaState extends State<SignUpEspecialista> {
           'contrasena': contrasena.text,
           'telefono': telefono.text,
           'fecha_nacimiento': fecha_nacimiento.text,
-          'titulo_especialidad': titulo_especialidad.text,
-          'cedula_profesional': cedula_profesional.text,
+          'cargo': cargo.text,
         }),
       );
 
-      print('Mostrando el status:');
-      print(response.statusCode);
-      // if (response.statusCode == 201) {
-      //   // Registro exitoso, redirigir al login
-      //   if (!mounted) return;
-       Navigator.pushReplacement(
+      if (response.statusCode == 201) {
+        if (!mounted) return;
+        Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          MaterialPageRoute(builder: (context) => const VerificationScreen()),
         );
-      // } else {
-      //   // Manejar error de registro
-      //   ScaffoldMessenger.of(context).showSnackBar(
-      //     SnackBar(content: Text('Error en el registro. Inténtalo de nuevo.')),
-      //   );
-      // }
+      } else {
+        // Manejar error de registro
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error en el registro. Inténtalo de nuevo.')),
+        );
+      }
     } catch (e) {
       // Manejar errores de conexión
       ScaffoldMessenger.of(context).showSnackBar(
@@ -117,7 +113,7 @@ class _SignUpEspecialistaState extends State<SignUpEspecialista> {
                 children: [
                   const ListTile(
                     title: Text(
-                      "Registro Especialista",
+                      "Registro tutor",
                       style: TextStyle(
                           fontSize: 50, fontWeight: FontWeight.bold),
                     ),
@@ -324,7 +320,7 @@ class _SignUpEspecialistaState extends State<SignUpEspecialista> {
                       ),
                     ),
                   ),
-                                    Container(
+                  Container(
                     margin: EdgeInsets.all(8),
                     padding: const EdgeInsets.symmetric(
                         horizontal: 10, vertical: 6),
@@ -366,7 +362,7 @@ class _SignUpEspecialistaState extends State<SignUpEspecialista> {
                         borderRadius: BorderRadius.circular(8),
                         color: Colors.deepPurple.withOpacity(.2)),
                     child: TextFormField(
-                      controller: titulo_especialidad,
+                      controller: cargo,
                       validator: (value) {
                         if (value!.isEmpty) {
                           return "campo obligatorio";
@@ -376,29 +372,7 @@ class _SignUpEspecialistaState extends State<SignUpEspecialista> {
                       decoration: const InputDecoration(
                         icon: Icon(Icons.person_outlined),
                         border: InputBorder.none,
-                        hintText: "Especialidad",
-                      ),
-                    ),
-                  ),
-                  Container(
-                    margin: EdgeInsets.all(8),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        color: Colors.deepPurple.withOpacity(.2)),
-                    child: TextFormField(
-                      controller: cedula_profesional,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return "campo obligatorio";
-                        }
-                        return null;
-                      },
-                      decoration: const InputDecoration(
-                        icon: Icon(Icons.person_outlined),
-                        border: InputBorder.none,
-                        hintText: "Cédula profesional",
+                        hintText: "Cargo",
                       ),
                     ),
                   ),

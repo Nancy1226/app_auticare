@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:local_auth/local_auth.dart';
 import 'package:app_auticare/Authtentication/selectuser.dart';
-import 'package:app_auticare/Views/user_tutor/home.dart';
+import 'package:app_auticare/Views/user_tutor/home_tutor.dart';
+import 'package:app_auticare/Views/user_specialist/home_specialist.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 
@@ -26,12 +27,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool isLoginTrue = false;
 
-  //Función de login que consume la API
+
   Future<void> login() async {
-    final url = Uri.parse('http://10.0.2.2:3000/api/v1/auth/login'); // URL de tu API
+    final url = Uri.parse('http://10.0.2.2:3000/api/v1/users/auth/login'); 
 
     try {
-      // Imprimir los datos que estás enviando
       print('Enviando los siguientes datos:');
       print({
         'correo': correo.text,
@@ -53,16 +53,29 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        final token = responseData['token'];
+        final token = responseData["result"]["token"];
+        final userUUid = responseData["result"]["userUUid"];
+        final email = responseData["result"]["email"];
+        final userType = responseData["result"]["userType"];
+
 
         // Verifica que el token no sea nulo o vacío
         if (token != null && token.isNotEmpty) {
           await storage.write(key: 'authToken', value: token);
+          await storage.write(key: 'userUUid', value: userUUid);
+          await storage.write(key: 'email', value: email);
           print('Token guardado: $token');
-           Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const Home()),
-        );
+             if (userType == "Especialista") {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomeSpecialist()),
+              );
+            } else if (userType == "Tutor") {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomeTutor()),
+              );
+            }
         } else {
           print('Error: El token recibido es nulo o vacío');
         }
@@ -129,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       final authenticated = await auth.authenticate(
-        localizedReason: 'Autentícate para iniciar sesión',
+        localizedReason: 'Autentícate para acceder a tu cuenta',
         options: const AuthenticationOptions(
           useErrorDialogs: true,
           stickyAuth: true,
@@ -142,7 +155,31 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       if (authenticated) {
-        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const Home()));
+        // Recuperar el token y el tipo de usuario del almacenamiento seguro
+        final token = await storage.read(key: 'authToken');
+        final userType = await storage.read(key: 'userType');
+
+        if (token == null || userType == null) {
+          setState(() {
+            _authorized = 'No se encontraron datos de sesión previa. Por favor, inicia sesión manualmente.';
+          });
+          return;
+        }
+
+        // Redirigir basado en el tipo de usuario
+        if (userType == "Especialista") {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeSpecialist()),
+          );
+        } else if (userType == "Tutor") {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeTutor()),
+          );
+        } else {
+          print('Error: Tipo de usuario desconocido');
+        }
       }
     } catch (e) {
       setState(() {
@@ -152,6 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
       print('Error de autenticación: $e');
     }
   }
+
 
   //We have to create global key for our form
   final formKey = GlobalKey<FormState>();
@@ -166,7 +204,6 @@ class _LoginScreenState extends State<LoginScreen> {
               key: formKey,
               child: Column(
                 children: [
-
                   Image.asset(
                     "lib/assets/login.png",
                     width: 210,
