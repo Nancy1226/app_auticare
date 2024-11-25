@@ -1,10 +1,11 @@
+import 'package:app_auticare/Widgets/costum_modal_tutor.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:app_auticare/Views/user_tutor/profile_tutor.dart';
 import 'package:app_auticare/widgets/custom_navigation_bar.dart';
-import 'package:app_auticare/Widgets/custom_modal.dart';
+import 'package:app_auticare/Widgets/costum_modal_tutor.dart';
 import 'package:app_auticare/Widgets/app_routes.dart'; 
 
 class HomeTutor extends StatefulWidget {
@@ -211,7 +212,7 @@ class _HomeScreenState extends State<HomeTutor> {
                     ),
                   ),
                   builder: (BuildContext context) {
-                    return CustomModal(); // Llama al componente del modal
+                    return CustomModalTutor(); // Llama al componente del modal
                   },
                 );
               },
