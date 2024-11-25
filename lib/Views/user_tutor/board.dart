@@ -11,30 +11,30 @@ class Board extends StatefulWidget {
 }
 
 class _BoardState extends State<Board> {
-  // Inicializamos _selectedIndex con un valor por defecto
   int _selectedIndex = 1;
-  String _selectedFilter = 'Todos'; // Cambiamos el valor inicial a 'Todos'
-  
-  List<EmotionData> allEmotions = [
+  String _selectedFilter = 'Todos';
+
+  // Lista de emociones usando la propiedad assets
+  final List<EmotionData> allEmotions = [
     EmotionData(
-      imagePath: 'lib/assets/emotions/feliz.png',
+      imagePath: 'lib/assets/feliz.png',
       label: 'Feliz',
-      type: 'Feliz'
+      type: 'Feliz',
     ),
     EmotionData(
-      imagePath: 'lib/assets/emotions/enojado.png',
+      imagePath: 'lib/assets/enojado.png',
       label: 'Enojado',
-      type: 'Triste'
+      type: 'Enojado',
     ),
     EmotionData(
-      imagePath: 'lib/assets/emotions/triste.png',
+      imagePath: 'lib/assets/triste.png',
       label: 'Triste',
-      type: 'Triste'
+      type: 'Triste',
     ),
     EmotionData(
-      imagePath: 'lib/assets/emotions/emocionado.png',
+      imagePath: 'lib/assets/emocionado.png',
       label: 'Emocionado',
-      type: 'Feliz'
+      type: 'Emocionado',
     ),
   ];
 
@@ -49,7 +49,6 @@ class _BoardState extends State<Board> {
           Navigator.of(context).pushReplacementNamed(AppRoutes.home_tutor);
           break;
         case 1:
-          // No necesitamos navegar si ya estamos en el tablero
           break;
         case 2:
           Navigator.of(context).pushReplacementNamed(AppRoutes.chat);
@@ -73,7 +72,7 @@ class _BoardState extends State<Board> {
         return false;
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFFF1F5F9),
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -97,10 +96,12 @@ class _BoardState extends State<Board> {
                           MaterialPageRoute(builder: (context) => const ProfileTutor()),
                         );
                       },
-                      child: CircleAvatar(
+                      child: const CircleAvatar(
                         radius: 20,
                         backgroundColor: Colors.transparent,
-                        child: Image.asset("lib/assets/profile.png"),
+                        child: Image(
+                          image: AssetImage('lib/assets/profile.png'),
+                        ),
                       ),
                     ),
                   ],
@@ -201,8 +202,8 @@ class _BoardState extends State<Board> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset(
-                emotion.imagePath,
+              Image(
+                image: AssetImage(emotion.imagePath),
                 height: 100,
                 width: 100,
               ),
@@ -253,18 +254,6 @@ class _BoardState extends State<Board> {
   }
 }
 
-class EmotionData {
-  final String imagePath;
-  final String label;
-  final String type;
-
-  EmotionData({
-    required this.imagePath,
-    required this.label,
-    required this.type,
-  });
-}
-
 class EmotionCard extends StatelessWidget {
   final String imagePath;
   final String label;
@@ -293,7 +282,7 @@ class EmotionCard extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withOpacity(0.3),
               spreadRadius: 0,
               blurRadius: 6,
               offset: const Offset(0, 2),
@@ -303,8 +292,8 @@ class EmotionCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              imagePath,
+            Image(
+              image: AssetImage(imagePath),
               height: 80,
               width: 80,
               fit: BoxFit.contain,
@@ -323,4 +312,16 @@ class EmotionCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class EmotionData {
+  final String imagePath;
+  final String label;
+  final String type;
+
+  EmotionData({
+    required this.imagePath,
+    required this.label,
+    required this.type,
+  });
 }

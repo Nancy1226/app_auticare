@@ -185,10 +185,7 @@ class _ProfileChildsState extends State<ProfileChilds> {
 
   AppBar _buildAppBar() {
     return AppBar(
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.black),
-        onPressed: () => Navigator.pop(context),
-      ),
+      automaticallyImplyLeading: false,
       title: const Text(
         'Usuarios registrados',
         style: TextStyle(
@@ -248,7 +245,9 @@ class _ProfileChildsState extends State<ProfileChilds> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF1F5F9),
-      appBar: _buildAppBar(),
+      appBar: 
+      _buildAppBar()
+      ,
       body: _buildBody(),
       floatingActionButton: _buildFloatingActionButton(),
       bottomNavigationBar: CustomNavigationBar(

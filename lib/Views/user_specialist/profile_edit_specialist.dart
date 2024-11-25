@@ -1,8 +1,50 @@
-import 'package:app_auticare/Views/user_specialist/profile_specialist.dart';
-import 'package:app_auticare/Views/user_tutor/donation_tutor.dart';
-import 'package:app_auticare/Views/user_tutor/profile_tutor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:app_auticare/Views/user_specialist/profile_specialist.dart';
+
+class UserProfile {
+  final String nombre;
+  final String apellido_paterno;
+  final String apellido_materno;
+  final String sexo;
+  final String correo;
+  final String telefono;
+  final String fecha_nacimiento;
+  final String tipo_usuario;
+  final String titulo_especialidad;
+  final String cedula_profesional;
+
+  UserProfile({
+    required this.nombre,
+    required this.apellido_paterno,
+    required this.apellido_materno,
+    required this.sexo,   
+    required this.correo, 
+    required this.telefono,  
+    required this.fecha_nacimiento,  
+    required this.tipo_usuario,  
+    required this.titulo_especialidad,
+    required this.cedula_profesional,  
+  });
+
+  factory UserProfile.fromJson(Map<String, dynamic> json) {
+    return UserProfile(
+      nombre: json['nombre'] ?? '',
+      apellido_paterno: json['apellido_paterno'] ?? '',
+      apellido_materno: json['apellido_materno'] ?? '',
+      sexo: json['sexo'] ?? '',
+      correo: json['correo'] ?? '',
+      telefono: json['telefono'] ?? '',
+      fecha_nacimiento: json['fecha_nacimiento'] ?? '',
+      tipo_usuario: json['tipo_usuario'] ?? '',
+      titulo_especialidad: json['titulo_especialidad'] ?? '',
+      cedula_profesional: json['cedula_profesional'] ?? '',
+    );
+  }
+}
 
 class Profile_Edit_Specialist extends StatefulWidget {
   const Profile_Edit_Specialist({Key? key}) : super(key: key);
@@ -12,63 +54,197 @@ class Profile_Edit_Specialist extends StatefulWidget {
 }
 
 class _Profile_Edit_State extends State<Profile_Edit_Specialist> {
-  final _formKey = GlobalKey<FormState>();
+   final _formKey = GlobalKey<FormState>();
+  final FlutterSecureStorage storage = FlutterSecureStorage();
+  UserProfile? userProfile;
+  
+  bool isLoading = true;
 
-  final TextEditingController _nameController = TextEditingController(text: "Nancy Jimenez Escobar");
-  final TextEditingController _genderController = TextEditingController(text: "Femenino");
-  final TextEditingController _emailController = TextEditingController(text: "nancy-12_03@hotmail.com");
-  final TextEditingController _phoneController = TextEditingController(text: "9612545998");
-  final TextEditingController _roleController = TextEditingController(text: "Madre");
-
+  // Separar los controladores para cada campo
+  late TextEditingController _nameController;
+  late TextEditingController _lastNameController;
+  late TextEditingController _secondLastNameController;
+  late TextEditingController _genderController;
+  late TextEditingController _emailController;
+  late TextEditingController _phoneController;
   DateTime? _birthDate;
+  late TextEditingController _userController;
+  late TextEditingController _specialtyController;
+  late TextEditingController _licenceController;
 
-  // Regex for validations
-  final RegExp emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-  final RegExp nameRegex = RegExp(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$');
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController();
+    _lastNameController = TextEditingController();
+    _secondLastNameController = TextEditingController();
+    _genderController = TextEditingController();
+    _emailController = TextEditingController();
+    _phoneController = TextEditingController();
+    _userController = TextEditingController();
+    _specialtyController = TextEditingController();
+    _licenceController = TextEditingController();
+    _getAwaitProfile();
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _lastNameController.dispose();
+    _secondLastNameController.dispose();
     _genderController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
-    _roleController.dispose();
+    _userController.dispose();
+    _specialtyController.dispose();
+    _licenceController.dispose();
     super.dispose();
   }
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('¡Éxito!'),
-          content: const Text('Los datos se han actualizado correctamente.'),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Aceptar'),
-            ),
-          ],
-        ),
+  Future<void> _getAwaitProfile() async {
+    final String? uuid = await storage.read(key: 'userUUid');
+    if (uuid != null) {
+      try {
+        final response = await http.get(
+          Uri.parse('http://10.0.2.2:3000/api/v1/users/specialists/$uuid'),
+        );
+
+        if (response.statusCode == 200) {
+          final Map<String, dynamic> data = json.decode(response.body);
+          setState(() {
+            userProfile = UserProfile.fromJson(data);
+            _nameController.text = userProfile!.nombre;
+            _lastNameController.text = userProfile!.apellido_paterno;
+            _secondLastNameController.text = userProfile!.apellido_materno;
+            _genderController.text = userProfile!.sexo;
+            _emailController.text = userProfile!.correo;
+            _phoneController.text = userProfile!.telefono;
+            if (userProfile!.fecha_nacimiento.isNotEmpty) {
+              _birthDate = DateTime.parse(userProfile!.fecha_nacimiento);
+            }
+            _userController.text = userProfile!.tipo_usuario;
+            _specialtyController.text = userProfile!.titulo_especialidad;
+            _licenceController.text = userProfile!.cedula_profesional;
+            isLoading = false;
+          });
+        } else {
+          setState(() => isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Error al cargar el perfil')),
+          );
+        }
+      } catch (e) {
+        setState(() => isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _updateProfile() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final String? uuid = await storage.read(key: 'userUUid');
+    if (uuid == null) return;
+
+    try {
+      final response = await http.put(
+        Uri.parse('http://10.0.2.2:3000/api/v1/users/specialists/$uuid'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'nombre': _nameController.text,
+          'apellido_paterno': _lastNameController.text,
+          'apellido_materno': _secondLastNameController.text,
+          'sexo': _genderController.text,
+          'correo': _emailController.text,
+          'telefono': _phoneController.text,
+          'fecha_nacimiento': _birthDate?.toIso8601String(),
+          'tipo_usuario': _userController.text,
+          'titulo_especialidad': _specialtyController.text,
+          'cedula_profesional': _licenceController.text,
+        }),
       );
-    } else {
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Perfil actualizado correctamente')),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const ProfileSpecialist()),
+        );
+      } else {
+        throw Exception('Error al actualizar el perfil');
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, corrija los errores en el formulario'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Error al actualizar el perfil: $e')),
       );
     }
   }
 
-  Future<void> _selectDate() async {
+  Widget _buildDateField(String label, DateTime? date, VoidCallback onTap) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(fontSize: 16, color: Color(0xFF666666)),
+            ),
+            const SizedBox(height: 4),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: const Color(0xFFE0E0E0)),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    date != null
+                        ? "${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}"
+                        : "Seleccionar fecha",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: date != null ? Colors.black : Colors.grey,
+                    ),
+                  ),
+                  const Icon(Icons.calendar_today, color: Color(0xFF6A62B7)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+    Future<void> _selectDate() async {
     DateTime initialDate = _birthDate ?? DateTime(2000);
     DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: initialDate,
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
+      locale: const Locale('es', 'ES'),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF6A62B7),
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (pickedDate != null) {
       setState(() {
@@ -107,6 +283,14 @@ class _Profile_Edit_State extends State<Profile_Edit_Specialist> {
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
               ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFF6A62B7)),
+              ),
             ),
             validator: validator,
           ),
@@ -115,60 +299,32 @@ class _Profile_Edit_State extends State<Profile_Edit_Specialist> {
     );
   }
 
-  Widget _buildDateField(String label, DateTime? date, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(fontSize: 16, color: Color(0xFF666666)),
-            ),
-            const SizedBox(height: 4),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: const Color(0xFFE0E0E0)),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                date != null
-                    ? "${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}"
-                    : "Seleccionar fecha",
-                style: const TextStyle(fontSize: 16, color: Color(0xFF666666)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Editar Perfil"),
-        backgroundColor: Colors.transparent,
+        backgroundColor: Color(0xFFF1F5F9),
         elevation: 0,
-        actions: [
-          TextButton(
-            onPressed: () {
-              // Acción para cerrar sesión
-            },
-            child: const Text(
-              "Cerrar sesión",
-              style: TextStyle(color: Color(0xFF7D6C9E), fontSize: 16),
-            ),
-          ),
-        ],
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios),
+          onPressed:() => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ProfileSpecialist()),
+           ),
+        )
       ),
-      body: SingleChildScrollView(
+      body: Container(
+        color: Color(0xFFF1F5F9),
+      child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Form(
@@ -184,7 +340,7 @@ class _Profile_Edit_State extends State<Profile_Edit_Specialist> {
                       CircleAvatar(
                         radius: 60,
                         backgroundImage: const AssetImage("lib/assets/profile.png"),
-                        backgroundColor: Colors.grey[200],
+                        backgroundColor: Color(0xFFF1F5F9),
                       ),
                       Positioned(
                         bottom: 0,
@@ -199,73 +355,86 @@ class _Profile_Edit_State extends State<Profile_Edit_Specialist> {
                 ),
                 const SizedBox(height: 32),
                 _buildFormField(
-                  "Nombre completo",
+                  "Nombre",
                   _nameController,
-                  validator: (value) => value == null || value.isEmpty
-                      ? 'El nombre es requerido'
-                      : (!nameRegex.hasMatch(value) ? 'Solo letras' : null),
+                  validator: (value) =>
+                      value == null || value.isEmpty ? 'El nombre es requerido' : null,
+                ),
+                _buildFormField(
+                  "Apellido Paterno",
+                  _lastNameController,
+                  validator: (value) =>
+                      value == null || value.isEmpty ? 'El apellido paterno es requerido' : null,
+                ),
+                _buildFormField(
+                  "Apellido Materno",
+                  _secondLastNameController,
+                  validator: (value) =>
+                      value == null || value.isEmpty ? 'El apellido materno es requerido' : null,
                 ),
                 _buildFormField(
                   "Sexo",
                   _genderController,
-                  validator: (value) => value == null || value.isEmpty ? 'El sexo es requerido' : null,
+                  validator: (value) =>
+                      value == null || value.isEmpty ? 'El sexo es requerido' : null,
                 ),
                 _buildFormField(
                   "Correo electrónico",
                   _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  validator: (value) => value == null || value.isEmpty
-                      ? 'El correo es requerido'
-                      : (!emailRegex.hasMatch(value) ? 'Correo inválido' : null),
+                  validator: (value) =>
+                      value == null || value.isEmpty ? 'El correo es requerido' : null,
                 ),
                 _buildFormField(
                   "Teléfono",
                   _phoneController,
                   keyboardType: TextInputType.phone,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  validator: (value) => value == null || value.isEmpty
-                      ? 'Teléfono requerido'
-                      : (value.length != 10 ? '10 dígitos requeridos' : null),
+                  validator: (value) =>
+                      value == null || value.isEmpty ? 'Teléfono requerido' : null,
                 ),
                 _buildDateField("Fecha de nacimiento", _birthDate, _selectDate),
                 _buildFormField(
-                  "Cargo",
-                  _roleController,
-                  validator: (value) => value == null || value.isEmpty ? 'El cargo es requerido' : null,
+                  "Tipo de especialidad",
+                  _specialtyController,
+                  validator: (value) =>
+                      value == null || value.isEmpty ? 'El tipo de especialidad es requerido' : null,
+                ),
+                _buildFormField(
+                  "Cédula profesional",
+                  _licenceController,
+                  validator: (value) =>
+                      value == null || value.isEmpty ? 'La cedula profesional es requerido' : null,
                 ),
                 const SizedBox(height: 32),
                 Container(
-                width: double.infinity,
-                height: 56,
-                margin: const EdgeInsets.only(bottom: 24),
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ProfileSpecialist()),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6A62B7), // Color morado
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                  width: double.infinity,
+                  height: 56,
+                  margin: const EdgeInsets.only(bottom: 24),
+                  child: ElevatedButton(
+                    onPressed: _updateProfile,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6A62B7),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
-                  ),
-                  child: const Text(
-                    "Guardar cambios",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
+                    child: const Text(
+                      "Guardar cambios",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ),
-              ),
               ],
             ),
           ),
         ),
+      ),
       ),
     );
   }

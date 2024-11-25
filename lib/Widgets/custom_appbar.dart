@@ -1,3 +1,4 @@
+import 'package:app_auticare/Views/user_tutor/home_tutor.dart';
 import 'package:flutter/material.dart';
 import 'package:app_auticare/Views/user_tutor/profile_tutor.dart';
 
@@ -34,9 +35,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                   children: [
                     Row(
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-                          onPressed: () => Navigator.pop(context),
+                       IconButton(
+                          icon: const Icon(Icons.arrow_back_ios),
+                          onPressed:() => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const HomeTutor()),
+                          ),
                         ),
                         const Text(
                           'Meta AI',
@@ -57,27 +61,25 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                       ],
                     ),
                     Container(
-                      width: 40,
-                      height: 40,
+                       width: 49,
+                       height: 49,
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         color: Color(0xFFDBE1E9),
                       ),
-                      child: IconButton(
-                        icon: const CircleAvatar(
-                          radius: 40,
-                          backgroundColor: Color(0xFFF1F5F9),
+                    child: IconButton(
+                        icon: CircleAvatar(
+                          radius: 24,
+                          backgroundColor: const Color(0xFFF1F5F9),
                           backgroundImage: AssetImage("lib/assets/profile.png"),
                         ),
                         onPressed: () {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => const ProfileTutor(), // Define esta clase.
-                            ),
+                            MaterialPageRoute(builder: (context) => const ProfileTutor()),
                           );
                         },
-                      ),
+                      )
                     ),
                   ],
                 ),

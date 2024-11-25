@@ -55,6 +55,7 @@ class _Profile_Edit_Tutor_State extends State<Profile_Edit_Tutor> {
   final _formKey = GlobalKey<FormState>();
   final FlutterSecureStorage storage = FlutterSecureStorage();
   UserProfile? userProfile;
+  
   bool isLoading = true;
 
   // Separar los controladores para cada campo
@@ -301,19 +302,17 @@ class _Profile_Edit_Tutor_State extends State<Profile_Edit_Tutor> {
         title: const Text("Editar Perfil"),
         backgroundColor: Color(0xFFF1F5F9),
         elevation: 0,
-        actions: [
-          TextButton(
-            onPressed: () {
-              // Implementar lógica de cierre de sesión
-            },
-            child: const Text(
-              "Cerrar sesión",
-              style: TextStyle(color: Color(0xFF7D6C9E), fontSize: 16),
-            ),
-          ),
-        ],
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios),
+          onPressed:() => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ProfileTutor()),
+           ),
+        )
       ),
-      body: SingleChildScrollView(
+      body: Container(
+        color: Color(0xFFF1F5F9),
+      child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Form(
@@ -417,6 +416,7 @@ class _Profile_Edit_Tutor_State extends State<Profile_Edit_Tutor> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

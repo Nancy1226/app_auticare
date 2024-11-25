@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:app_auticare/Views/user_specialist/profile_specialist.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:app_auticare/widgets/custom_navigation_bar.dart';
+import 'package:app_auticare/Widgets/cuestom_navigation_bar_specialist.dart';
 import 'package:app_auticare/Widgets/custom_modal.dart';
 import 'package:app_auticare/Widgets/app_routes.dart'; 
 
@@ -15,9 +16,20 @@ class HomeSpecialist extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeSpecialist> {
-  int _selectedIndex = 0;
+   int _selectedIndex = 0;
   final FlutterSecureStorage storage = FlutterSecureStorage();
   String? token;
+  String? nombre;
+  String? selectedCategory;
+
+  final List<String> categories = [
+    'Diagnóstico y Evaluación',
+    'Tratamientos y Terapias',
+    'Educación y Apoyo Escolar',
+    'Vida Familiar y Social',
+    'Salud y Bienestar',
+    'Recursos y Servicios'
+  ];
 
   @override
   void initState() {
@@ -27,6 +39,8 @@ class _HomeScreenState extends State<HomeSpecialist> {
 
   Future<void> _loadToken() async {
     token = await storage.read(key: 'authToken');
+    nombre = await storage.read(key: 'nombre');
+
     print('Token recuperado: $token');
     setState(() {});
   }
@@ -34,39 +48,65 @@ class _HomeScreenState extends State<HomeSpecialist> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFF1F5F9),
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+        automaticallyImplyLeading: false,
+        backgroundColor: const Color(0xFFF1F5F9),
         elevation: 0,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  "¡Hola Nancy!",
-                  style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black),
-                ),
-                Text(
-                  "Empezamos?",
-                  style: TextStyle(fontSize: 16, color: Colors.black54),
-                ),
-              ],
+            Text(
+              '¡Hola ${nombre ?? "invitado"}!',
+              style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black),
             ),
-            CircleAvatar(
-              radius: 24,
-              backgroundColor: Colors.purpleAccent,
-              backgroundImage: AssetImage("lib/assets/profile.png"),
+            Text(
+              "Revision",
+              style: TextStyle(fontSize: 16, color: Colors.black54),
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: CircleAvatar(
+              radius: 24,
+              backgroundColor: const Color(0xFFF1F5F9),
+              backgroundImage: AssetImage("lib/assets/profile.png"),
+            ),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileSpecialist()),
+              );
+            },
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
+          DropdownButton<String>(
+            value: selectedCategory,
+            hint: Text(
+              'Selecciona una categoría',
+              style: TextStyle(fontSize: 14, color: Colors.black54),
+            ),
+            items: categories
+                .map((category) => DropdownMenuItem<String>(
+                      value: category,
+                      child: Text(category),
+                    ))
+                .toList(),
+            onChanged: (value) {
+              setState(() {
+                selectedCategory = value;
+              });
+            },
+          ),
+          const SizedBox(height: 16),
           buildActivityCard(
             color: Color(0xFF515AA7),
             icon: Icons.book,
@@ -95,7 +135,7 @@ class _HomeScreenState extends State<HomeSpecialist> {
           ),
         ],
       ),
-      bottomNavigationBar: CustomNavigationBar(
+      bottomNavigationBar: CustomNavigationBarSpecialist(
         selectedIndex: _selectedIndex,
         onItemSelected: (index) {
           setState(() {
@@ -108,6 +148,9 @@ class _HomeScreenState extends State<HomeSpecialist> {
               Navigator.pushNamed(context, AppRoutes.home_specialist);
               break;
             case 1:
+              Navigator.pushNamed(context, AppRoutes.profile_specialist);
+              break;
+            case 3:
               Navigator.pushNamed(context, AppRoutes.profile_specialist);
               break;
           }
@@ -149,7 +192,7 @@ class _HomeScreenState extends State<HomeSpecialist> {
               ),
               if (validated)
                 const Text(
-                  "✔ validado",
+                  "✔ Por validar",
                   style: TextStyle(color: Colors.white),
                 ),
             ],
@@ -157,28 +200,28 @@ class _HomeScreenState extends State<HomeSpecialist> {
           const SizedBox(height: 8),
           ElevatedButton(
               onPressed: () {
-              // Mostrar el modal al presionar el botón
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true, // Permite que el modal se ajuste a su contenido
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(16),
+                // Mostrar el modal al presionar el botón
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true, // Permite que el modal se ajuste a su contenido
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
                   ),
+                  builder: (BuildContext context) {
+                    return CustomModal(); // Llama al componente del modal
+                  },
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: color,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                builder: (BuildContext context) {
-                  return CustomModal(); // Llama al componente del modal
-                },
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: color,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
               ),
-            ),
-            child: const Text("Ver más"),
+              child: const Text("Ver más"),
           ),
           const Spacer(),
           Row(
@@ -210,3 +253,4 @@ class _HomeScreenState extends State<HomeSpecialist> {
     );
   }
 }
+

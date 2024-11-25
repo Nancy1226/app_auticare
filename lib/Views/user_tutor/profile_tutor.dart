@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:app_auticare/widgets/custom_navigation_bar.dart';
 import 'package:app_auticare/Widgets/app_routes.dart';
+import 'package:app_auticare/Views/user_tutor/home_tutor.dart';
 import 'package:app_auticare/Views/user_tutor/donation_tutor.dart';
 import 'package:app_auticare/Views/user_tutor/profile_edit_tutor.dart';
-import 'package:app_auticare/widgets/custom_navigation_bar.dart';
+import 'package:app_auticare/Authtentication/login.dart';
 
 // Modelo para el perfil del usuario
 class UserProfile {
@@ -65,6 +67,18 @@ class _ProfileTutorState extends State<ProfileTutor> {
     _getAwaitProfile();
   }
 
+  Future<void> _logoutProfile(BuildContext context) async {
+    // Crear una instancia de FlutterSecureStorage
+    final storage = FlutterSecureStorage();
+
+    // Eliminar todos los datos
+    await storage.deleteAll();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+    );
+  }
+
   Future<void> _getAwaitProfile() async {
     final String? uuid = await storage.read(key: 'userUUid');
     print('Token recuperado: $uuid');
@@ -110,20 +124,25 @@ class _ProfileTutorState extends State<ProfileTutor> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FE), // Fondo gris muy claro
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios),
+          onPressed:() => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeTutor()),
+           ),
+        ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
           TextButton(
             onPressed: () {
-              // Lógica para cerrar sesión
+              print("boton presionando");
+              _logoutProfile(context);
             },
             child: const Text(
               "Cerrar sesión",
-              style: TextStyle(
-                color: Color(0xFF7D6C9E),
-                fontSize: 16,
-              ),
+              style: TextStyle(color: Color(0xFF7D6C9E), fontSize: 16),
             ),
           ),
         ],
@@ -246,30 +265,6 @@ class _ProfileTutorState extends State<ProfileTutor> {
                 ],
               ),
             ),
-      bottomNavigationBar: CustomNavigationBar(
-        selectedIndex: _selectedIndex,
-        onItemSelected: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-
-          // Navega a la ruta correspondiente
-          switch (index) {
-            case 0:
-              Navigator.pushNamed(context, AppRoutes.home_tutor);
-              break;
-            case 1:
-              Navigator.pushNamed(context, AppRoutes.board);
-              break;
-            case 2:
-              Navigator.pushNamed(context, AppRoutes.chat);
-              break;
-            case 3:
-              Navigator.pushNamed(context, AppRoutes.donation_tutor);
-              break;
-          }
-        },
-      ),
     );
   }
 
