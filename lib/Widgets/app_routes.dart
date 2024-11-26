@@ -10,6 +10,7 @@ import 'package:app_auticare/Views/user_tutor/profile_tutor.dart';
 import 'package:app_auticare/Views/user_tutor/donation_tutor.dart';
 import 'package:app_auticare/Views/user_tutor/profile_child.dart';
 import 'package:app_auticare/Views/user_tutor/profile_childs.dart';
+import 'package:app_auticare/Views/user_tutor/recomendations.dart';
 
 //especialista
 import 'package:app_auticare/Views/user_specialist/home_specialist.dart';
@@ -30,6 +31,7 @@ class AppRoutes {
   static const String board = '/board';
   static const String profile_child = '/profile_child';
   static const String profile_childs = '/profile_childs';
+  static const String recomendations = '/recomendations';
 
   //especialista
   static const String home_specialist= '/home_specialist';
@@ -45,7 +47,8 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => LoginScreen());
       case verification: 
         return MaterialPageRoute(builder: (_)=> VerificationScreen());
-      
+      case recomendations: 
+        return MaterialPageRoute(builder: (_)=> Recomendations());
       //tutor
       case home_tutor:
         return MaterialPageRoute(builder: (_) => HomeTutor());

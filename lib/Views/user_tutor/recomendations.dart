@@ -1,10 +1,11 @@
+import 'package:app_auticare/Views/user_tutor/home_tutor.dart';
+import 'package:app_auticare/Widgets/custom_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:app_auticare/Views/user_specialist/profile_specialist.dart';
+import 'package:app_auticare/Views/user_tutor/profile_tutor.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:app_auticare/Widgets/cuestom_navigation_bar_specialist.dart';
-import 'package:app_auticare/Widgets/custom_modal.dart';
+import 'package:app_auticare/Widgets/costum_modal_tutor.dart';
 import 'package:app_auticare/Widgets/app_routes.dart';
 
 // Models
@@ -46,20 +47,21 @@ class Categories {
   ];
 }
 
-class HomeSpecialist extends StatefulWidget {
-  const HomeSpecialist({Key? key}) : super(key: key);
+class Recomendations extends StatefulWidget {
+  const Recomendations({Key? key}) : super(key: key);
 
   @override
-  State<HomeSpecialist> createState() => _HomeSpecialistState();
+  State<Recomendations> createState() => _RecomendationsState();
 }
 
-class _HomeSpecialistState extends State<HomeSpecialist> {
+class _RecomendationsState extends State<Recomendations> {
   int _selectedIndex = 0;
   final FlutterSecureStorage _storage = FlutterSecureStorage();
   String? _token;
   String? _nombre;
   String? _selectedCategory;
   List<Recommendation> _recommendations = [];
+  String? uuidChild;
 
   @override
   void initState() {
@@ -76,22 +78,35 @@ class _HomeSpecialistState extends State<HomeSpecialist> {
     _token = await _storage.read(key: 'authToken');
     _nombre = await _storage.read(key: 'nombre');
     setState(() {});
+    final String? selectedUuid = await _storage.read(key: 'uuidChild');
+    if (selectedUuid != null) {
+    print('UUID del niño seleccionado: $selectedUuid');
+    uuidChild = selectedUuid; 
+  } else {
+    print('No se ha seleccionado ningún niño');
+  }
   }
 
   Future<List<Recommendation>> _fetchRecommendations() async {
-    if (_token == null) {
-      throw Exception("Token no disponible");
+      if (_token == null) {
+    throw Exception("Token no disponible");
     }
 
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:3000/api/v1/recommendations/not-validated'),
+      Uri.parse('http://10.0.2.2:3000/api/v1/recommendations/validated/child/$uuidChild'),
       headers: {'Authorization': 'Bearer $_token'},
     );
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
+      
+      // If no validated recommendations for this child
+      if (data.isEmpty || !data.any((rec) => rec['validada'] == 1)) {
+        throw Exception('No recommendations');
+      }
+
       return data
-          .where((rec) => rec['validada'] == 0)
+          .where((rec) => rec['validada'] == 1)
           .map((rec) => Recommendation.fromJson(rec))
           .toList();
     } else {
@@ -100,19 +115,40 @@ class _HomeSpecialistState extends State<HomeSpecialist> {
   }
 
   Future<void> _loadRecommendations() async {
-    try {
-      final allRecommendations = await _fetchRecommendations();
+  try {
+    // Only fetch if a child is selected
+    if (uuidChild == null) {
       setState(() {
-        _recommendations = allRecommendations
-            .where((rec) =>
-                _selectedCategory == null || rec.categoria == _selectedCategory)
-            .toList();
+        _recommendations = []; // Ensure empty if no child selected
       });
-    await _storage.write(key: 'uuidRecomendation', value: _recommendations.first.uuid);
-    } catch (e) {
+      return;
+    }
+
+    final allRecommendations = await _fetchRecommendations();
+    
+    // Filter recommendations for the specific child
+    setState(() {
+      _recommendations = allRecommendations
+          .where((rec) =>
+              (_selectedCategory == null || rec.categoria == _selectedCategory))
+          .toList();
+    });
+
+    // Only write recommendation UUID if recommendations exist
+    if (_recommendations.isNotEmpty) {
+      await _storage.write(key: 'uuidRecomendation', value: _recommendations.first.uuid);
+    }
+  } catch (e) {
+    if (e.toString().contains('No recommendations')) {
+      // Handle specific case of no recommendations
+      setState(() {
+        _recommendations = [];
+      });
+    } else {
       _showErrorDialog('Error al cargar recomendaciones: $e');
     }
   }
+ }
 
   void _showErrorDialog(String message) {
     showDialog(
@@ -132,14 +168,19 @@ class _HomeSpecialistState extends State<HomeSpecialist> {
 
   void _navigateToScreen(int index) {
     setState(() => _selectedIndex = index);
-    
+
     switch (index) {
       case 0:
-        Navigator.pushNamed(context, AppRoutes.home_specialist);
+        Navigator.pushNamed(context, AppRoutes.home_tutor);
         break;
       case 1:
+        Navigator.pushNamed(context, AppRoutes.board);
+        break;
+      case 2:
+        Navigator.pushNamed(context, AppRoutes.chat);
+        break;
       case 3:
-        Navigator.pushNamed(context, AppRoutes.profile_specialist);
+        Navigator.pushNamed(context, AppRoutes.profile_childs);
         break;
     }
   }
@@ -150,7 +191,7 @@ class _HomeSpecialistState extends State<HomeSpecialist> {
       backgroundColor: const Color(0xFFF1F5F9),
       appBar: _buildAppBar(),
       body: _buildBody(),
-      bottomNavigationBar: CustomNavigationBarSpecialist(
+      bottomNavigationBar: CustomNavigationBar(
         selectedIndex: _selectedIndex,
         onItemSelected: _navigateToScreen,
       ),
@@ -162,6 +203,13 @@ class _HomeSpecialistState extends State<HomeSpecialist> {
       automaticallyImplyLeading: false,
       backgroundColor: const Color(0xFFF1F5F9),
       elevation: 0,
+      leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed:() => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeTutor()),
+          ),
+        ),
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -188,23 +236,59 @@ class _HomeSpecialistState extends State<HomeSpecialist> {
           ),
           onPressed: () => Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const ProfileSpecialist()),
+            MaterialPageRoute(builder: (context) => const ProfileTutor()),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildBody() {
-    return ListView(
-      padding: const EdgeInsets.all(16.0),
-      children: [
-        _buildCategoryDropdown(),
-        const SizedBox(height: 16),
-        ..._recommendations.map(_buildRecommendationCard),
-      ],
-    );
-  }
+ Widget _buildBody() {
+  return ListView(
+    padding: const EdgeInsets.all(16.0),
+    children: [
+      _buildCategoryDropdown(),
+      const SizedBox(height: 16),
+      if (_recommendations.isEmpty)
+        Center(
+          child: Column(
+            children: [
+              const SizedBox(height: 50),
+              const Icon(
+                Icons.person_off_outlined, 
+                size: 120, 
+                color: Colors.black54,
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'No tiene recomendaciones',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.black54,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'Aún no se han generado recomendaciones para este niño.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black45,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        )
+      else
+        ...[
+          const SizedBox(height: 16),
+          ..._recommendations.map(_buildRecommendationCard),
+        ],
+    ],
+  );
+ }
 
   Widget _buildCategoryDropdown() {
     return DropdownButton<String>(
@@ -287,7 +371,7 @@ class _HomeSpecialistState extends State<HomeSpecialist> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (context) => CustomModal(
+      builder: (context) => CustomModalTutor(
         title: recommendation.categoria,
         consulta: recommendation.consulta,
         recomendacion: recommendation.recomendacion,
@@ -298,4 +382,16 @@ class _HomeSpecialistState extends State<HomeSpecialist> {
       ),
     );
   }
+
+  @override
+  void dispose() {
+    super.dispose();
+      // Remove uuidChild from storage only if no recommendations and no further action needed
+    if (_recommendations.isEmpty) {
+      _storage.delete(key: 'uuidChild');
+      print('uuidChild eliminado del almacenamiento porque no hay recomendaciones.');
+    }
+    super.dispose();
+  }
+
 }

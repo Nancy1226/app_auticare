@@ -8,10 +8,10 @@ import 'package:app_auticare/Widgets/custom_appbar.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class Child {
-  final String id;
+  final String uuidChild;
   final String nombre;
 
-  Child({required this.id, required this.nombre});
+  Child({required this.uuidChild, required this.nombre});
 }
 
 class Chatbot extends StatefulWidget {
@@ -28,7 +28,7 @@ class _ChatbotState extends State<Chatbot> {
   bool _isConnected = true;
   bool _isListening = false;
   late stt.SpeechToText _speech;
-  final String _apiKey = 'AIzaSyA9ejnBH-ZMI0zQFDHk9GTQ3cH5aPHGi0U';
+  final String _apiKey = 'AIzaSyBKQ8JcvejOkTxjMMyF87_gilg3V53-V1w';
   final _storage = const FlutterSecureStorage();
   Set<int> _validatedResponses = {};
   String ? _selectedCategory;
@@ -274,7 +274,7 @@ class _ChatbotState extends State<Chatbot> {
       final List<dynamic> data = jsonDecode(response.body);
       List<Child> fetchedChildren = data.map<Child>((child) => 
         Child(
-          id: child['id'].toString(), 
+          uuidChild: child['uuid'].toString(), 
           nombre: child['nombre'] as String
         )
       ).toList();
@@ -300,19 +300,18 @@ class _ChatbotState extends State<Chatbot> {
 
   Future<void> _sendValidationToApi(int messageIndex) async {
     try {
-      // Obtenemos el mensaje del usuario y la recomendación correspondiente
-      final userMessage = _messages[messageIndex - 1]; // Mensaje del usuario
-      final botResponse = _messages[messageIndex]; // Recomendación del bot
 
-      // Preparamos los datos para enviar
+      final userMessage = _messages[messageIndex - 1];
+      final botResponse = _messages[messageIndex];
+
+
       final Map<String, dynamic> validationData = {
-        "id_nino": _selectedChild?.id,
+        "id_nino": _selectedChild?.uuidChild,
         "categoria": _selectedCategory,
         "consulta": userMessage['parts'],
         "recomendacion": botResponse['parts'].toString().replaceFirst('Recomendación:', '').trim()
       };
 
-      // Realizamos la petición POST
       final response = await http.post(
         Uri.parse('http://10.0.2.2:3000/api/v1/recommendations/'), // Ajusta la URL según tu API
         headers: {
@@ -322,7 +321,7 @@ class _ChatbotState extends State<Chatbot> {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // Validación exitosa
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Validación guardada exitosamente'),
